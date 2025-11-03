@@ -18,8 +18,7 @@ connectDB();
 app.use(express.json());
 app.use(
   cors({
-    origin:
-      "https://todo-next-frontend-git-main-somnath-baidyas-projects.vercel.app/",
+    origin: "https://todo-next-frontend-gamma.vercel.app/",
     credentials: true,
   })
 );
