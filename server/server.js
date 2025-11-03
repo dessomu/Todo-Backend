@@ -61,7 +61,7 @@ app.post("/login", async (req, res) => {
     // Setting the JWT in cookie
     res.cookie("auth_token", customJwt, {
       httpOnly: true,
-      secure: true, // true in production
+      secure: fasle, // true in production
       sameSite: "none",
       maxAge: expiresIn,
       path: "/",
