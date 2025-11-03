@@ -15,13 +15,21 @@ const app = express();
 connectDB();
 // connectRedis();
 
+const allowedOrigins = [
+  " https://todo-next-frontend-git-main-somnath-baidyas-projects.vercel.app/",
+  "http://localhost:3000",
+];
+
 app.use(express.json());
 app.use(
   cors({
-    origin: [
-      "https://todo-next-frontend-git-main-somnath-baidyas-projects.vercel.app/",
-      "http://localhost:3000",
-    ],
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
   })
 );
