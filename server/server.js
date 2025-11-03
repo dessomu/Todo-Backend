@@ -42,7 +42,7 @@ app.post("/login", async (req, res) => {
     res.cookie("auth_token", customJwt, {
       httpOnly: true,
       secure: false, // true in production
-      sameSite: "lax",
+      sameSite: "none",
       maxAge: expiresIn,
       path: "/",
     });
