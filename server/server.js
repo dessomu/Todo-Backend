@@ -16,7 +16,13 @@ connectDB();
 // connectRedis();
 
 app.use(express.json());
-app.use(cors({ origin: "http://localhost:3000", credentials: true }));
+app.use(
+  cors({
+    origin:
+      "https://todo-next-frontend-git-main-somnath-baidyas-projects.vercel.app/",
+    credentials: true,
+  })
+);
 app.use(cookieParser());
 
 // === Login / Logout endpoints ===
