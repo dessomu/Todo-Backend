@@ -18,8 +18,10 @@ connectDB();
 app.use(express.json());
 app.use(
   cors({
-    origin:
+    origin: [
       "https://todo-next-frontend-git-main-somnath-baidyas-projects.vercel.app/",
+      "http://localhost:3000",
+    ],
     credentials: true,
   })
 );
