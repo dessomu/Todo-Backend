@@ -19,7 +19,7 @@ app.use(express.json());
 app.use(
   cors({
     origin:
-      " https://todo-next-frontend-git-main-somnath-baidyas-projects.vercel.app/",
+      "https://todo-next-frontend-git-main-somnath-baidyas-projects.vercel.app/",
     credentials: true,
   })
 );
@@ -51,7 +51,7 @@ app.post("/login", async (req, res) => {
     // Setting the JWT in cookie
     res.cookie("auth_token", customJwt, {
       httpOnly: true,
-      secure: fasle, // true in production
+      secure: false, // true in production
       sameSite: "none",
       maxAge: expiresIn,
       path: "/",
