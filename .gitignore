@@ -1,0 +1,31 @@
+node_modules/
+.env
+.env.*
+*.log
+.DS_Store
+Thumbs.db
+
+# Ignore build outputs (both frontend & backend)
+dist/
+build/
+.next/
+out/
+
+# Local editor / system files
+.vscode/
+.idea/
+*.swp
+*.swo
+*.cache
+
+# Ignore lockfiles from global installs
+yarn.lock
+pnpm-lock.yaml
+
+# Frontend build artifacts
+client/.next/
+client/out/
+
+# Backend build artifacts
+server/dist/
+server/build/
