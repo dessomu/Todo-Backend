@@ -74,7 +74,12 @@ app.post("/login", async (req, res) => {
 app.post("/logout", (req, res) => {
   console.log("logout request received");
 
-  res.clearCookie("auth_token", { path: "/" });
+  res.clearCookie("auth_token", {
+    httpOnly: true,
+    secure: true, // true in production
+    sameSite: "none",
+    path: "/",
+  });
   return res
     .status(200)
     .json({ success: true, message: "✅ Logged out and cookie cleared" });
