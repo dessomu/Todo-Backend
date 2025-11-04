@@ -18,7 +18,10 @@ connectDB();
 app.use(express.json());
 app.use(
   cors({
-    origin: "https://todo-next-frontend-gamma.vercel.app",
+    origin: [
+      "https://todo-next-frontend-gamma.vercel.app",
+      "http://localhost:3000",
+    ],
     credentials: true,
   })
 );
