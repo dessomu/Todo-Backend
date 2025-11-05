@@ -53,7 +53,7 @@ app.post("/login", async (req, res) => {
     // Setting the JWT in cookie
     res.cookie("auth_token", customJwt, {
       httpOnly: true,
-      secure: true, // true in production
+      secure: process.env.NODE_ENV === "production",
       sameSite: "none",
       maxAge: expiresIn,
       path: "/",
@@ -76,10 +76,9 @@ app.post("/logout", (req, res) => {
 
   res.clearCookie("auth_token", {
     httpOnly: true,
-    secure: true, // true in production
+    secure: process.env.NODE_ENV === "production",
     sameSite: "none",
     path: "/",
-    domain: "mern-todo-8f4w.onrender.com", // 👈 important for cross-origin clear
   });
   return res
     .status(200)
