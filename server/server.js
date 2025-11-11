@@ -223,6 +223,8 @@ app.patch("/:id", authMiddleware, async (req, res) => {
   }
 });
 
+app.get("/health", (req, res) => res.send("OK"));
+
 app.listen(PORT, () => {
   console.log(`Server is runnig on http://localhost:${PORT}`);
 });
