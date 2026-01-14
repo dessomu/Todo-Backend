@@ -86,17 +86,29 @@ app.get("/", authMiddleware, async (req, res) => {
 
   try {
     // Checking if cache exists
-    const cached = await redis.get(cacheKey);
+    let cached = null;
+    try {
+      cached = await redis.get(cacheKey);
+    } catch (redisErr) {
+      console.error("Redis get error:", redisErr);
+      // Proceed to DB
+    }
+
     if (cached) {
       const todos = typeof cached === "string" ? JSON.parse(cached) : cached;
       console.log("✅ Todos form redis cache");
-
       return res.status(200).json(todos);
     }
 
     //  Calling DB if cache does not exist
     const todos = await Todo.find({ userId });
-    await redis.set(cacheKey, JSON.stringify(todos), { EX: 300 }); // 300s = 5min cache
+    
+    try {
+        await redis.set(cacheKey, JSON.stringify(todos), { EX: 300 }); // 300s = 5min cache
+    } catch (redisErr) {
+        console.error("Redis set error:", redisErr);
+        // Continue without caching
+    }
 
     return res.status(200).json(todos);
   } catch (error) {
@@ -118,14 +130,26 @@ app.post("/", authMiddleware, async (req, res) => {
     await newTodo.save();
 
     // Invalidate Redis cache
-    await redis.del(cacheKey);
-    // fetch updated todos and set to cache
-    const todos = await Todo.find({ userId });
-    await redis.set(cacheKey, JSON.stringify(todos), { EX: 300 });
-    return res.status(201).json({
-      message: "✅ Todo added successfully",
-      todos,
-    });
+    try {
+      await redis.del(cacheKey);
+      // fetch updated todos and set to cache
+      const todos = await Todo.find({ userId });
+      await redis.set(cacheKey, JSON.stringify(todos), { EX: 300 });
+      return res.status(201).json({
+        message: "✅ Todo added successfully",
+        todos,
+      });
+    } catch (redisErr) {
+      console.error("Redis error in POST:", redisErr);
+      // If redis fails, still return success but maybe just the new todo or fetch from DB manually without cache
+      // To match previous behavior of returning all todos:
+      const todos = await Todo.find({ userId });
+      return res.status(201).json({
+        message: "✅ Todo added successfully (Cache update failed)",
+        todos,
+      });
+    }
+
   } catch (error) {
     console.log("Error savin todo", error);
     return res.status(500).json({ message: "Error saving todo" });
@@ -140,18 +164,28 @@ app.delete("/:id", authMiddleware, async (req, res) => {
 
     const deletedTodo = await Todo.findOneAndDelete({ _id: id, userId });
     if (!deletedTodo) {
-      res.status(404).json({ message: "❌ Todo not found" });
+      return res.status(404).json({ message: "❌ Todo not found" });
     }
+    
     // Invalidate Redis cache
-    await redis.del(cacheKey);
+    try {
+      await redis.del(cacheKey);
+      // send back updated todo and reset cache
+      const todos = await Todo.find({ userId });
+      await redis.set(cacheKey, JSON.stringify(todos), { EX: 300 });
+      return res.status(200).json({
+        message: "✅ Todo deleted successfully",
+        todos,
+      });
+    } catch (redisErr) {
+        console.error("Redis error in DELETE:", redisErr);
+        const todos = await Todo.find({ userId });
+        return res.status(200).json({
+            message: "✅ Todo deleted successfully (Cache update failed)",
+            todos,
+        });
+    }
 
-    // send back updated todo and reset cache
-    const todos = await Todo.find({ userId });
-    await redis.set(cacheKey, JSON.stringify(todos), { EX: 300 });
-    return res.status(200).json({
-      message: "✅ Todo deleted successfully",
-      todos,
-    });
   } catch (error) {
     console.log("Error deleting todo", error);
     return res.status(500).json({ message: "Error deleting todo" });
@@ -172,18 +206,29 @@ app.put("/:id", authMiddleware, async (req, res) => {
     );
 
     if (!updatedTodo) {
-      res.status(404).json({ message: "❌ Todo not found" });
+      return res.status(404).json({ message: "❌ Todo not found" });
     }
     // Invalidate Redis cache
-    await redis.del(cacheKey);
+    try {
+        await redis.del(cacheKey);
 
-    // send back updated todo and reset cache
-    const todos = await Todo.find({ userId });
-    await redis.set(cacheKey, JSON.stringify(todos), { EX: 300 });
-    return res.status(200).json({
-      message: "✅ Todo updated successfully",
-      todos,
-    });
+        // send back updated todo and reset cache
+        const todos = await Todo.find({ userId });
+        await redis.set(cacheKey, JSON.stringify(todos), { EX: 300 });
+        return res.status(200).json({
+            message: "✅ Todo updated successfully",
+            todos,
+        });
+
+    } catch (redisErr) {
+        console.error("Redis error in PUT:", redisErr);
+        const todos = await Todo.find({ userId });
+        return res.status(200).json({
+            message: "✅ Todo updated successfully (Cache update failed)",
+            todos,
+        });
+    }
+
   } catch (error) {
     console.log("Error updating todo", error);
     return res.status(500).json({ message: "Error updating todo" });
@@ -204,18 +249,27 @@ app.patch("/:id", authMiddleware, async (req, res) => {
     );
 
     if (!updatedTodo) {
-      res.status(404).json({ message: "❌ Todo not found" });
+      return res.status(404).json({ message: "❌ Todo not found" });
     }
     // Invalidate Redis cache
-    await redis.del(cacheKey);
+    try {
+        await redis.del(cacheKey);
 
-    // send back updated todo and reset cache
-    const todos = await Todo.find({ userId });
-    await redis.set(cacheKey, JSON.stringify(todos), { EX: 300 });
-    return res.status(200).json({
-      message: "✅ Complete status updated successfully",
-      todos,
-    });
+        // send back updated todo and reset cache
+        const todos = await Todo.find({ userId });
+        await redis.set(cacheKey, JSON.stringify(todos), { EX: 300 });
+        return res.status(200).json({
+        message: "✅ Complete status updated successfully",
+        todos,
+        });
+    } catch (redisErr) {
+        console.error("Redis error in PATCH:", redisErr);
+        const todos = await Todo.find({ userId });
+        return res.status(200).json({
+            message: "✅ Complete status updated successfully (Cache update failed)",
+            todos,
+        });
+    }
   } catch (error) {
     console.log("Error in complete-status update", error);
     return res.status(500).json({ message: "Error in complete-status update" });
