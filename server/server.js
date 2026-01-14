@@ -15,7 +15,6 @@ const PORT = process.env.PORT;
 const app = express();
 
 connectDB();
-connectRedis();
 
 app.use(express.json());
 app.use(
